@@ -17,7 +17,12 @@ from langchain.agents.agent_toolkits import(
 # import API KEY
 os.environ['OPENAI_API_KEY'] = apikey
 
+embedding_function=OpenAIEmbeddings()
+
 llm = OpenAI(temperature=0.9)
+
+# title for screen
+st.title('🦜🔗 GPT Investment Banker')
 
 # Create text input box for user
 prompt = st.text_input('Input your prompt here')
@@ -25,9 +30,9 @@ prompt = st.text_input('Input your prompt here')
 # Create and load pdf loader
 loader = PyPDFLoader('tesla_annual_report.pdf')
 # Split pages from pdf
-pages = loader.load_and_split(embedding_function=OpenAIEmbeddings())
+pages = loader.load_and_split()
 # Load documents into vector database (ChromaDB)
-store = Chroma.from_documents(pages, collection_name='tesla_annual_report')
+store = Chroma.from_documents(pages, embedding_function, collection_name = "tesla_annual_report")
 # Create vectorstore info object (works as metadata repo)
 vectorstore_info = VectorStoreInfo(
     name = "tesla_annual_report",
@@ -36,7 +41,7 @@ vectorstore_info = VectorStoreInfo(
 )
 
 # Convert document store into vector toolkit
-toolkit = VectorStoreToolkit(vectorstore_info=vectorstore_info)
+toolkit = VectorStoreToolkit(vectorstore_info=vectorstore_info, embedding_function=OpenAIEmbeddings())
 
 # Add the toolkit to an end-to-end LC (gives our model access to pdf)
 agent_executor = create_vectorstore_agent(
@@ -48,7 +53,7 @@ agent_executor = create_vectorstore_agent(
 # If the user hits enter 
 if prompt:
     # response = llm(prompt)
-    respone = agent_executor.run(prompt)
+    response = agent_executor.run(prompt)
     st.write(response)
 
     # With a streamlit expander
